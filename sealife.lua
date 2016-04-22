@@ -99,8 +99,8 @@ minetest.register_ore({
 	clust_scarcity = 10*10*10,
 	clust_num_ores = 24,
 	clust_size     = 4,
-	height_max     = -30,
-	height_min     = -100,
+	y_max          = -30,
+	y_min          = -100,
 })
 
 -- Randomly generate Coral or Seaweed and have Seaweed grow up to 10 high
