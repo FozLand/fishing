@@ -112,7 +112,7 @@ minetest.register_abm({
 
 	action = function(pos, node)
 
-		sel = math.random(1,4)
+		local sel = math.random(1,4)
 		if sel == 1 or minetest.get_node(pos).name == 'fishing:seaweed' then
 
 			local height = 0
