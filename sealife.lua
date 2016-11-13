@@ -15,6 +15,7 @@ minetest.register_node('fishing:seaweed', {
 	post_effect_color = {a=64, r=100, g=100, b=200},
 	groups = {
 			not_in_creative_inventory = 1,
+			seaflora = 1,
 			snappy=3
 		},
 	on_use = minetest.item_eat(1),
@@ -34,6 +35,8 @@ minetest.register_node('fishing:coral2', {
 	light_source = 3,
 	groups = {
 			not_in_creative_inventory = 1,
+			seaflora = 1,
+			coral = 1,
 			snappy=3
 		},
 	sounds = default.node_sound_leaves_defaults(),
@@ -52,6 +55,8 @@ minetest.register_node('fishing:coral3', {
 	light_source = 3,
 	groups = {
 			not_in_creative_inventory = 1,
+			seaflora = 1,
+			coral = 1,
 			snappy=3
 		},
 	sounds = default.node_sound_leaves_defaults(),
@@ -70,76 +75,87 @@ minetest.register_node('fishing:coral4', {
 	light_source = 3,
 	groups = {
 			not_in_creative_inventory = 1,
+			seaflora = 1,
+			coral = 1,
 			snappy=3
 		},
 	sounds = default.node_sound_leaves_defaults(),
 })
 
--- Undersea Sand
-minetest.register_node('fishing:sandy', {
-	description = 'Sandy',
-	tiles = {'default_sand.png'},
-	is_ground_content = true,
-	groups = {
-			crumbly=3,
-			falling_node=1,
-			sand=1,
-			soil=1,
-			not_in_creative_inventory=1
-		},
-	--drop = 'default:sand',
-	sounds = default.node_sound_sand_defaults(),
-})
-
--- Register Undersea Sand
-minetest.register_ore({
-	ore_type       = 'scatter',
-	ore            = 'fishing:sandy',
-	wherein        = 'default:sand',
-	clust_scarcity = 10*10*10,
-	clust_num_ores = 24,
-	clust_size     = 4,
-	y_max          = -30,
-	y_min          = -100,
-})
-
--- Randomly generate Coral or Seaweed and have Seaweed grow up to 10 high
+-- Randomly generate Coral or Seaweed
 minetest.register_abm({
-	nodenames = {'fishing:sandy'},
+	nodenames = {'default:sand'},
 	neighbors = {'group:water'},
 	interval = 15,
-	chance = 10,
+	chance = 96,
+
+	action = function(pos, node)
+		pos.y = pos.y + 1
+
+		--  Check if there's too much corals and seaweed around.
+		local pos0 = {x = pos.x - 4, y = pos.y - 4, z = pos.z - 4}
+		local pos1 = {x = pos.x + 4, y = pos.y + 4, z = pos.z + 4}
+		local seaflora = minetest.find_nodes_in_area(pos0, pos1, "group:seaflora")
+		if #seaflora > 3 then
+			return
+		end
+
+		-- Generate a new coral or seaweed
+		if pos.y < 2  and  minetest.get_node(pos).name == 'default:water_source' then
+			local sel = math.random(1,4)
+
+			-- 25% of the time, it's a seaweed
+			if sel == 1 then
+				minetest.set_node(pos, {name='fishing:seaweed'})
+
+			-- 75% of the time, it's corals (1-3)
+			else
+				minetest.set_node(pos, {name='fishing:coral'..sel})
+
+			end
+		end
+	end,
+})
+
+
+-- Grow seaweed
+minetest.register_abm({
+	nodenames = {'fishing:seaweed'},
+	neighbors = {'group:sand'},
+	interval = 12,
+	chance = 83,
 
 	action = function(pos, node)
 
-		local sel = math.random(1,4)
-		if sel == 1 or minetest.get_node(pos).name == 'fishing:seaweed' then
-
-			local height = 0
-
-			while minetest.get_node(pos).name == 'fishing:seaweed'
-			or minetest.get_node(pos).name == 'fishing:sandy'
-			and height < 14 do
-				height = height + 1
-				pos.y = pos.y + 1
-			end
-
-			if height < 14 and pos.y < 0 then
-				if minetest.get_node(pos).name == 'default:water_source' then
-					minetest.set_node(pos, {name='fishing:seaweed'})
---					print ('GOING UP')
-				end
-			end
-
-		else
-
-			pos.y = pos.y + 1
-
-			if minetest.get_node(pos).name == 'default:water_source' then
-				minetest.set_node(pos, {name='fishing:coral'..sel})
---				print ('CORAL ', sel)
-			end
-
+		-- Check that there is sand below
+		pos.y = pos.y - 1
+		if minetest.get_item_group(minetest.get_node(pos).name, "sand") == 0 then
+			return
 		end
+
+		-- Get plant height
+		pos.y = pos.y + 1
+		local height = 0
+		while node.name == "fishing:seaweed" and height < 14 do
+			height = height + 1
+			pos.y = pos.y + 1
+			node = minetest.get_node(pos)
+		end
+
+		-- Make sure it's not too tall and that there is water above
+		if height == 14 or node.name ~= "default:water_source" then
+			return
+		end
+
+		-- Prevent growth to surface
+		pos.y = pos.y + 1
+		if minetest.get_node(pos).name ~= "default:water_source" then
+			return
+		end
+		pos.y = pos.y - 1
+
+		minetest.set_node(pos, {name = "fishing:seaweed"})
+		return true
+
 	end,
 })
