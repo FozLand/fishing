@@ -32,7 +32,6 @@ minetest.register_node('fishing:coral2', {
 	inventory_image = 'coral2.png',
 	paramtype = 'light',
 	selection_box = {type = 'fixed', fixed = {-0.5, -0.5, -0.5, 0.5, -5/16, 0.5}},
-	light_source = 3,
 	groups = {
 			not_in_creative_inventory = 1,
 			seaflora = 1,
@@ -52,7 +51,6 @@ minetest.register_node('fishing:coral3', {
 	inventory_image = 'coral3.png',
 	paramtype = 'light',
 	selection_box = {type = 'fixed', fixed = {-0.5, -0.5, -0.5, 0.5, -5/16, 0.5}},
-	light_source = 3,
 	groups = {
 			not_in_creative_inventory = 1,
 			seaflora = 1,
@@ -72,7 +70,6 @@ minetest.register_node('fishing:coral4', {
 	inventory_image = 'coral4.png',
 	paramtype = 'light',
 	selection_box = {type = 'fixed', fixed = {-0.5, -0.5, -0.5, 0.5, -5/16, 0.5}},
-	light_source = 3,
 	groups = {
 			not_in_creative_inventory = 1,
 			seaflora = 1,
