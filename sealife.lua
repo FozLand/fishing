@@ -80,7 +80,8 @@ minetest.register_node('fishing:coral4', {
 })
 
 -- Randomly generate Coral or Seaweed
-minetest.register_abm({
+minetest.register_lbm({
+	name = 'fishing:generate_coral_seaweed',
 	nodenames = {'default:sand'},
 	neighbors = {'group:water'},
 	interval = 15,
@@ -116,7 +117,8 @@ minetest.register_abm({
 
 
 -- Grow seaweed
-minetest.register_abm({
+minetest.register_lbm({
+	name = 'fishing:grow_seaweed',
 	nodenames = {'fishing:seaweed'},
 	neighbors = {'group:sand'},
 	interval = 12,
