@@ -89,9 +89,6 @@ minetest.register_craft({
 minetest.register_craftitem('fishing:sashimi', {
 	description = 'Sashimi',
 	inventory_image = 'sashimi.png',
-	groups = {
-			not_in_creative_inventory = 1
-		},
 	on_use = minetest.item_eat(4),
 })
 
