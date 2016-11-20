@@ -123,3 +123,9 @@ minetest.register_craft( {
 	output = 'dye:pink 3',
 	recipe = {'fishing:coral4'},
 })
+
+minetest.register_craft( {
+	type = 'shapeless',
+	output = 'dye:green 3',
+	recipe = {'fishing:coral5'},
+})
