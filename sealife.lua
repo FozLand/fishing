@@ -6,7 +6,6 @@ minetest.register_node('fishing:seaweed', {
 	is_ground_content = true,
 	tiles = {'seaweed.png'},
 	inventory_image = 'seaweed.png',
-	wield_image = 'seaweed.png',
 	paramtype = 'light',
 	walkable = false,
 	climbable = true,
