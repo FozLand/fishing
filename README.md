@@ -1,15 +1,20 @@
-simple_fishing 
-=============
-Just the fishing and sealife feature from the ethereal mod:
+fishing 
+=======
 
-https://forum.minetest.net/viewtopic.php?f=11&t=7656&start=150#p153693
+The Fishing minetest mod adds basic fishing and seaflora.
+Copyright (C) 2016  John Cole
 
-for a simple and multiplayer working fishing and seaplants.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-Ethereal by Chincow
-Updated and maintained by TenPlus1
-Extracted with small modification by Xanthin
-https://forum.minetest.net/viewtopic.php?f=11&t=4375&p=154166#p154164
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-Note: rename the folder into "fishing", but actual the textures are missing here, so better use the uploaded file in the forum.
-If you want only fishing or only the seaplants, comment out the corresponding dofile in the init.lua file.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Textures are from ethereal mod under WTFPL.
