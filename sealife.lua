@@ -1,3 +1,65 @@
+local n_seaflora = function(pos,radius)
+	local minp  = vector.subtract(pos,radius)
+	local maxp  = vector.add(pos,radius)
+	local flora = minetest.find_nodes_in_area(minp,maxp, {'group:seaflora'})
+	return #flora
+end
+
+local habitable = function(pos, kind)
+	local Y1 = {x = 0, y = 1, z = 0}
+
+	-- Habitable if node above is water and is receiving light between 2 and 12.
+	if kind == 'seaweed' and
+	   minetest.get_node(vector.add(pos,Y1)).name == 'default:water_source' and
+	   minetest.get_node_light(pos, 0.5) >= 2 and
+	   minetest.get_node_light(pos, 0.5) <= 12 then
+		return true
+	end
+
+	-- Habitable if node above is water, node below is sand, and receiving light
+	-- between 3 and 9.
+	if kind == 'coral' and
+	   minetest.get_node(vector.add(pos,Y1)).name == 'default:water_source' and
+	   minetest.get_node(vector.subtract(pos,Y1)).name == 'default:sand' and
+	   minetest.get_node_light(pos, 0.5) >= 3 and
+	   minetest.get_node_light(pos, 0.5) <= 9 then
+		return true
+	end
+
+	return false
+end
+
+local grow_seaweed = function(pos, elapsed)
+	local Y = {x = 0, y = 1, z = 0}
+
+	-- Grow if habitable above.
+	if habitable(vector.add(pos,Y), 'seaweed') then
+		minetest.set_node(vector.add(pos,Y), {name = 'fishing:seaweed'})
+	end
+
+	-- Check if node survives to propatate.
+	if minetest.get_node(vector.subtract(pos,Y)).name == 'default:sand' then
+		-- Start a new node timer to grow again.
+		minetest.get_node_timer(pos):start(math.random(300,900))
+
+		-- Find a nearby habitable node and propagate if its not too crowded.
+		local poss = minetest.find_nodes_in_area(
+			vector.subtract(pos, 1),
+			vector.add(pos, 1),
+			{'default:water_source'}
+		)
+		if #poss > 0 then
+			local npos = poss[math.random(#poss)]
+			if n_seaflora(pos,1) < 6 and habitable(npos, 'seaweed') and
+				minetest.get_node(vector.subtract(npos,Y)).name == 'default:sand' then
+				minetest.set_node(npos, {name = 'fishing:seaweed'})
+			end
+		end
+	end
+
+	return false
+end
+
 -- Seaweed
 minetest.register_node('fishing:seaweed', {
 	description = 'Seaweed',
@@ -19,141 +81,108 @@ minetest.register_node('fishing:seaweed', {
 		},
 	on_use = minetest.item_eat(1),
 	sounds = default.node_sound_leaves_defaults(),
+	on_construct = function(pos)
+		minetest.get_node_timer(pos):start(math.random(300,900))
+	end,
+	on_timer = grow_seaweed
 })
 
--- Blue Coral
-minetest.register_node('fishing:coral2', {
-	description = 'Blue Coral',
-	drawtype = 'plantlike',
-	waving = 1,
-	is_ground_content = true,
-	tiles = {'coral2.png'},
-	inventory_image = 'coral2.png',
-	paramtype = 'light',
-	selection_box = {type = 'fixed', fixed = {-0.5, -0.5, -0.5, 0.5, -5/16, 0.5}},
-	groups = {
-			not_in_creative_inventory = 1,
+local grow_coral = function(pos, elapsed)
+	if habitable(pos, 'coral') then
+		-- Node survives to grow again.
+		minetest.get_node_timer(pos):start(math.random(900,1500))
+	else
+		return false
+	end
+
+	-- Find a nearby habitable node and propagate if its not too crowded.
+	local minp  = vector.subtract(pos,1)
+	local maxp  = vector.add(pos,1)
+	local poss  = minetest.find_nodes_in_area(minp,maxp, {'default:water_source'})
+	local flora = minetest.find_nodes_in_area(minp,maxp, {'group:coral'})
+	local pos   = poss[math.random(#poss)]
+
+	-- Assuming parent is under one water, abort unless there is more water.
+	if #poss > 1 and #flora < 4 and habitable(pos, 'coral') then
+		minetest.set_node(pos, {name = 'fishing:coral'..math.random(2,4)})
+	end
+
+	return false
+end
+
+local register_coral = function(name, def)
+	def.drawtype = 'plantlike'
+	def.waving = 1
+	def.is_ground_content = true
+	def.paramtype = 'light'
+	def.selection_box = {type = 'fixed', fixed = {-0.5, -0.5, -0.5, 0.5, -5/16, 0.5}}
+	def.groups = {
+			--not_in_creative_inventory = 1,
 			seaflora = 1,
 			coral = 1,
 			snappy=3
-		},
-	sounds = default.node_sound_leaves_defaults(),
+		}
+	def.sounds = default.node_sound_leaves_defaults()
+	def.on_construct = function(pos)
+		minetest.get_node_timer(pos):start(math.random(900,1500))
+	end
+	def.on_timer = grow_coral
+
+	minetest.register_node(name, def)
+end
+
+-- Blue Coral
+register_coral('fishing:coral2', {
+	description = 'Blue Coral',
+	tiles = {'coral2.png'},
+	inventory_image = 'coral2.png',
 })
 
 -- Orange Coral
-minetest.register_node('fishing:coral3', {
+register_coral('fishing:coral3', {
 	description = 'Orange Coral',
-	drawtype = 'plantlike',
-	waving = 1,
-	is_ground_content = true,
 	tiles = {'coral3.png'},
 	inventory_image = 'coral3.png',
-	paramtype = 'light',
-	selection_box = {type = 'fixed', fixed = {-0.5, -0.5, -0.5, 0.5, -5/16, 0.5}},
-	groups = {
-			not_in_creative_inventory = 1,
-			seaflora = 1,
-			coral = 1,
-			snappy=3
-		},
-	sounds = default.node_sound_leaves_defaults(),
 })
 
 -- Pink Coral
-minetest.register_node('fishing:coral4', {
+register_coral('fishing:coral4', {
 	description = 'Pink Coral',
-	drawtype = 'plantlike',
-	waving = 1,
-	is_ground_content = true,
 	tiles = {'coral4.png'},
 	inventory_image = 'coral4.png',
-	paramtype = 'light',
-	selection_box = {type = 'fixed', fixed = {-0.5, -0.5, -0.5, 0.5, -5/16, 0.5}},
-	groups = {
-			not_in_creative_inventory = 1,
-			seaflora = 1,
-			coral = 1,
-			snappy=3
-		},
-	sounds = default.node_sound_leaves_defaults(),
 })
 
--- Randomly generate Coral or Seaweed
+-- Randomly generate Coral
 minetest.register_lbm({
-	name = 'fishing:generate_coral_seaweed',
+	name = 'fishing:spawn_seaflora',
 	nodenames = {'default:sand'},
-	neighbors = {'group:water'},
-	interval = 15,
-	chance = 96,
-
+	run_at_every_load = true,
 	action = function(pos, node)
-		pos.y = pos.y + 1
-
-		--  Check if there's too much corals and seaweed around.
-		local pos0 = {x = pos.x - 4, y = pos.y - 4, z = pos.z - 4}
-		local pos1 = {x = pos.x + 4, y = pos.y + 4, z = pos.z + 4}
-		local seaflora = minetest.find_nodes_in_area(pos0, pos1, "group:seaflora")
-		if #seaflora > 3 then
-			return
-		end
-
-		-- Generate a new coral or seaweed
-		if pos.y < 2  and  minetest.get_node(pos).name == 'default:water_source' then
-			local sel = math.random(1,4)
-
-			-- 25% of the time, it's a seaweed
-			if sel == 1 then
-				minetest.set_node(pos, {name='fishing:seaweed'})
-
-			-- 75% of the time, it's corals (1-3)
-			else
-				minetest.set_node(pos, {name='fishing:coral'..sel})
-
+		pos = vector.add(pos,{x = 0, y = 1, z = 0})
+		if minetest.get_node(pos).name == 'default:water_source' and
+		   n_seaflora(pos,16) == 0 then
+			if math.random(4) == 1 and habitable(pos, 'seaweed') then
+				minetest.set_node(pos, {name = 'fishing:seaweed'})
+			elseif habitable(pos, 'coral') then
+				minetest.set_node(pos, {name = 'fishing:coral'..math.random(2,4)})
 			end
 		end
-	end,
+	end
 })
 
-
--- Grow seaweed
+--[[
+-- Remove all seaflora.
 minetest.register_lbm({
-	name = 'fishing:grow_seaweed',
-	nodenames = {'fishing:seaweed'},
-	neighbors = {'group:sand'},
-	interval = 12,
-	chance = 83,
-
+	name = 'fishing:remove_seaflora',
+	nodenames = {
+		'fishing:coral2',
+		'fishing:coral3',
+		'fishing:coral4',
+		'fishing:seaweed'
+	},
+	run_at_every_load = true,
 	action = function(pos, node)
-
-		-- Check that there is sand below
-		pos.y = pos.y - 1
-		if minetest.get_item_group(minetest.get_node(pos).name, "sand") == 0 then
-			return
-		end
-
-		-- Get plant height
-		pos.y = pos.y + 1
-		local height = 0
-		while node.name == "fishing:seaweed" and height < 14 do
-			height = height + 1
-			pos.y = pos.y + 1
-			node = minetest.get_node(pos)
-		end
-
-		-- Make sure it's not too tall and that there is water above
-		if height == 14 or node.name ~= "default:water_source" then
-			return
-		end
-
-		-- Prevent growth to surface
-		pos.y = pos.y + 1
-		if minetest.get_node(pos).name ~= "default:water_source" then
-			return
-		end
-		pos.y = pos.y - 1
-
-		minetest.set_node(pos, {name = "fishing:seaweed"})
-		return true
-
-	end,
+		minetest.set_node(pos, {name = 'default:water_source'})
+	end
 })
+--]]
