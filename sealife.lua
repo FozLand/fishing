@@ -104,7 +104,7 @@ local grow_coral = function(pos, elapsed)
 
 	-- Assuming parent is under one water, abort unless there is more water.
 	if #poss > 1 and #flora < 4 and habitable(pos, 'coral') then
-		minetest.set_node(pos, {name = 'fishing:coral'..math.random(2,5)})
+		minetest.set_node(pos, {name = 'fishing:coral'..math.random(1,5)})
 	end
 
 	return false
@@ -130,6 +130,13 @@ local register_coral = function(name, def)
 
 	minetest.register_node(name, def)
 end
+
+-- Yellow Coral
+register_coral('fishing:coral1', {
+	description = 'Yellow Coral',
+	tiles = {'coral1.png'},
+	inventory_image = 'coral1.png',
+})
 
 -- Blue Coral
 register_coral('fishing:coral2', {
@@ -171,7 +178,7 @@ minetest.register_lbm({
 			if math.random(4) == 1 and habitable(pos, 'seaweed') then
 				minetest.set_node(pos, {name = 'fishing:seaweed'})
 			elseif habitable(pos, 'coral') then
-				minetest.set_node(pos, {name = 'fishing:coral'..math.random(2,5)})
+				minetest.set_node(pos, {name = 'fishing:coral'..math.random(1,5)})
 			end
 		end
 	end
